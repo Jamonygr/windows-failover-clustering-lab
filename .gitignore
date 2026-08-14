@@ -1,0 +1,29 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Variable files may contain secrets; only examples and profiles are committed
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+!environments/*.tfvars
+
+# Local tooling output
+*.log
+.trivy-cache/
+.checkov-cache/
+
+# OS noise
+.DS_Store
+Thumbs.db

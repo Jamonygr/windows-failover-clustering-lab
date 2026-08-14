@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="230" viewBox="0 0 1200 230" role="img" aria-label="Windows Failover Clustering on Azure lab banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1e3a"/>
+      <stop offset="55%" stop-color="#123a66"/>
+      <stop offset="100%" stop-color="#0e5a8a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#81d4fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="230" fill="url(#bg)"/>
+  <g opacity="0.12" stroke="#9fd8ff" stroke-width="1">
+    <path d="M0 190 L1200 120"/>
+    <path d="M0 210 L1200 160"/>
+    <path d="M0 160 L1200 80"/>
+  </g>
+
+  <!-- node 1 -->
+  <g transform="translate(880,58)">
+    <rect x="0" y="0" width="96" height="60" rx="8" fill="#123a66" stroke="#4fc3f7" stroke-width="2"/>
+    <rect x="12" y="14" width="72" height="8" rx="3" fill="#4fc3f7" opacity="0.9"/>
+    <rect x="12" y="30" width="52" height="8" rx="3" fill="#4fc3f7" opacity="0.5"/>
+    <text x="48" y="78" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#bfe6ff" text-anchor="middle">node01</text>
+  </g>
+  <!-- node 2 -->
+  <g transform="translate(1042,58)">
+    <rect x="0" y="0" width="96" height="60" rx="8" fill="#123a66" stroke="#4fc3f7" stroke-width="2"/>
+    <rect x="12" y="14" width="72" height="8" rx="3" fill="#4fc3f7" opacity="0.9"/>
+    <rect x="12" y="30" width="52" height="8" rx="3" fill="#4fc3f7" opacity="0.5"/>
+    <text x="48" y="78" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#bfe6ff" text-anchor="middle">node02</text>
+  </g>
+  <!-- shared disk -->
+  <g transform="translate(966,140)">
+    <ellipse cx="43" cy="14" rx="43" ry="12" fill="#0b1e3a" stroke="#81d4fa" stroke-width="2"/>
+    <path d="M0 14 v26 a43 12 0 0 0 86 0 v-26" fill="#0b1e3a" stroke="#81d4fa" stroke-width="2"/>
+    <ellipse cx="43" cy="14" rx="43" ry="12" fill="#123a66" stroke="#81d4fa" stroke-width="2"/>
+    <text x="43" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#bfe6ff" text-anchor="middle">shared disk</text>
+  </g>
+  <!-- links -->
+  <g stroke="url(#accent)" stroke-width="2" fill="none">
+    <path d="M928 118 L992 148"/>
+    <path d="M1090 118 L1026 148"/>
+    <path d="M976 88 L1042 88"/>
+  </g>
+  <!-- cloud witness -->
+  <g transform="translate(760,120)">
+    <path d="M28 34 a14 14 0 0 1 5-27 a18 18 0 0 1 35-5 a13 13 0 0 1 8 24 z" fill="#123a66" stroke="#4fc3f7" stroke-width="2"/>
+    <text x="40" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#bfe6ff" text-anchor="middle">cloud witness</text>
+  </g>
+  <path d="M836 140 L928 108" stroke="url(#accent)" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+
+  <text x="60" y="98" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">Windows Failover Clustering on Azure</text>
+  <text x="60" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#bfe6ff">Two-node Windows Server 2025 cluster · Azure Shared Disk · Cloud Witness</text>
+  <text x="60" y="176" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#8fbadd">Terraform-built · break it, fail it over, repair quorum, prove storage ownership</text>
+  <rect x="60" y="192" width="340" height="4" rx="2" fill="url(#accent)"/>
+</svg>

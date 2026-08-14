@@ -1,0 +1,26 @@
+# Checkov configuration. Findings suppressed here must have a matching entry
+# in SECURITY_EXCEPTIONS.md with rationale, compensating control, and expiry.
+framework:
+  - terraform
+directory:
+  - .
+compact: true
+quiet: true
+download-external-modules: false
+skip-check:
+  # Cloud Witness protocol requires storage account shared key auth (see SECURITY_EXCEPTIONS.md SE-01)
+  - CKV2_AZURE_40
+  # Witness account uses service-endpoint scoped public endpoint, not Private Link (SE-03)
+  - CKV2_AZURE_33
+  # SAS expiry policy not applicable: no SAS tokens issued; witness uses account key (SE-01)
+  - CKV2_AZURE_41
+  # Customer-managed keys are out of lab scope; platform SSE applies (SE-04)
+  - CKV2_AZURE_1
+  # Queue/blob analytics logging omitted on the lab witness account (SE-03)
+  - CKV_AZURE_33
+  # LRS is intentional for a disposable lab witness account (cost)
+  - CKV_AZURE_206
+  # Domain-join and run-command extensions are the point of this lab (SE-02)
+  - CKV_AZURE_50
+  # Encryption at host not enabled: not universally registered on lab subscriptions (SE-04)
+  - CKV_AZURE_151

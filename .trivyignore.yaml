@@ -1,0 +1,10 @@
+# Trivy ignore file (yaml format, used with --ignorefile).
+# Every entry needs a SECURITY_EXCEPTIONS.md row with rationale and expiry.
+
+misconfigurations:
+  # SE-07: NSGs are associated at the subnet level (CAF practice); NIC-level
+  # association would duplicate the same rules on every interface.
+  - id: AVD-AZU-0068
+    paths:
+      - "modules/domain-controller/main.tf"
+      - "modules/cluster/main.tf"

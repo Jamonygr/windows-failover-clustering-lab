@@ -1,0 +1,35 @@
+# Copy to terraform.tfvars (or use environments/*.tfvars profiles) and adjust.
+# Keep secrets out of tfvars: export TF_VAR_admin_password / TF_VAR_safe_mode_password
+# for the session, or leave them unset to let Terraform generate values.
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+project         = "wsfc"
+environment     = "lab"
+location        = "westus2"
+owner           = "you@example.com"
+
+# --- identity ---------------------------------------------------------------
+domain_name         = "wsfclab.local"
+domain_netbios_name = "WSFCLAB"
+
+# --- compute ----------------------------------------------------------------
+dc_vm_size                   = "Standard_B2s"
+node_vm_size                 = "Standard_B2s"
+os_disk_storage_account_type = "StandardSSD_LRS"
+windows_server_sku           = "2025-datacenter-azure-edition"
+
+# --- shared disk ------------------------------------------------------------
+shared_disk_size_gb              = 32
+shared_disk_storage_account_type = "StandardSSD_LRS"
+shared_disk_max_shares           = 2
+
+# --- witness firewall -------------------------------------------------------
+# Add your public IP only if terraform plan/apply cannot read the storage
+# account from your workstation (data-plane firewall).
+allowed_witness_admin_ips = []
+
+# --- feature flags ----------------------------------------------------------
+deploy_load_balancer = false
+deploy_bastion       = false
+deploy_monitoring    = false
+enable_auto_shutdown = false

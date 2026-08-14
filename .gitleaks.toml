@@ -1,0 +1,18 @@
+# Gitleaks configuration - extends the default ruleset.
+# Rotate first, then clean history: removal without rotation is not remediation.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Lab documentation placeholders and non-secret example values"
+paths = [
+  '''terraform\.tfvars\.example''',
+  '''environments/.*\.tfvars''',
+  '''wiki/.*\.md''',
+  '''README\.md''',
+]
+regexes = [
+  '''00000000-0000-0000-0000-000000000000''',
+  '''ChangeMe[!A-Za-z0-9]*''',
+]
