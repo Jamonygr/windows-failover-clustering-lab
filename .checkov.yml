@@ -18,6 +18,12 @@ skip-check:
   - CKV2_AZURE_1
   # Queue/blob analytics logging omitted on the lab witness account (SE-03)
   - CKV_AZURE_33
+  # Witness endpoint is public-with-firewall by Cloud Witness design (SE-03)
+  - CKV_AZURE_59
+  # CMK/disk-encryption-set on the shared disk is out of lab scope; SSE applies (SE-04)
+  - CKV_AZURE_93
+  # Single-DC lab: one DNS endpoint on the VNet is the design (SE-08)
+  - CKV_AZURE_182
   # LRS is intentional for a disposable lab witness account (cost)
   - CKV_AZURE_206
   # Domain-join and run-command extensions are the point of this lab (SE-02)

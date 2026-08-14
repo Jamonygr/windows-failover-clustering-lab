@@ -33,6 +33,10 @@ resource "azurerm_windows_virtual_machine" "dc" {
   admin_password        = var.admin_password
   network_interface_ids = [azurerm_network_interface.dc.id]
 
+  # azure-edition images are hotpatch-enabled and mandate platform patching
+  patch_mode          = strcontains(var.windows_server_sku, "azure-edition") ? "AutomaticByPlatform" : "AutomaticByOS"
+  hotpatching_enabled = strcontains(var.windows_server_sku, "azure-edition")
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = var.os_disk_storage_account_type
