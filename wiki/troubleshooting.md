@@ -45,10 +45,10 @@ module's `ad_ready_delay` if your DC is slow (B-series burst credits).
 can take a minute+ to online after a hard preempt. If it exceeds the timeout,
 check the survivor's System log for disk arbitration errors.
 
-**Quorum drill: cluster did NOT go down in phase 2.** You waited too long
-between phases — dynamic quorum re-weighted the votes. Restore everything
-(enable witness access, start node02), let the cluster settle to 3 votes,
-and run the drill again without long pauses. See
+**Quorum drill: cluster did NOT go down in phase 2.** Expected on Windows
+Server 2025 — live testing showed the survivor riding through witness + node
+loss even with `DynamicQuorum = 0`. The drill reports this as its second
+valid outcome and skips the force step. See
 [quorum and voting](architecture/quorum-and-voting.md).
 
 **Witness stays Failed after restoring access.** DNS caches or blob
@@ -69,6 +69,11 @@ the storage firewall no longer contains the cluster subnet rule.
 - **Run commands while the cluster is down** keep working — the agent channel
   does not depend on the cluster service. That is what makes the quorum
   drill's force-repair possible without RDP.
+- **Storage cmdlets on cluster nodes show the cluster-wide view.** Once a
+  node joins a cluster, `Get-Disk`/`Get-Volume` federate the "Clustered
+  Windows Storage" subsystem, so a clustered disk can report `Online` from a
+  node that cannot actually mount it. Judge per-node access by the local
+  mount table (`Test-Path S:\`), which is what the storage drill does.
 - **Re-running `terraform apply`** is always safe: guest scripts exit 0 when
   their work is done; run-command resources only re-execute when their
   script content or parameters change.

@@ -28,8 +28,11 @@ function Get-RunCommandStdout {
 
 function Invoke-VmScript {
     param([string]$Vm, [string]$Script)
+    # base64-wrap so multi-line scripts survive the az.cmd argument chain
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Script))
+    $wrapper = "iex ([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded')))"
     $raw = (az vm run-command invoke --resource-group $ResourceGroup --name $Vm `
-            --command-id RunPowerShellScript --scripts $Script --output json) -join "`n"
+            --command-id RunPowerShellScript --scripts $wrapper --output json) -join "`n"
     if ($LASTEXITCODE -ne 0) { throw "run-command failed on $Vm" }
     $parsed = $raw | ConvertFrom-Json
     return Get-RunCommandStdout -Message (($parsed.value | ForEach-Object { $_.message }) -join "`n")
@@ -46,13 +49,15 @@ foreach ($vm in $nodeVms) {
     if ($vm -match '^vm-(node\d+)-') { $vmByComputer[$Matches[1]] = $vm }
 }
 
-$diskViewScript = @'
-Get-Disk | Where-Object { $_.IsClustered } | ForEach-Object {
-    "DISK num={0} size={1}GB clustered={2} status={3} offline={4}" -f $_.Number, [math]::Round($_.Size / 1GB), $_.IsClustered, ($_.OperationalStatus -join '+'), $_.IsOffline
-}
-$vol = Get-Volume -DriveLetter S -ErrorAction SilentlyContinue
-if ($vol) { "VOLUME S: present label={0} free={1}GB" -f $vol.FileSystemLabel, [math]::Round($vol.SizeRemaining / 1GB, 1) } else { "VOLUME S: not mounted" }
-'@
+# Storage cmdlets on cluster nodes federate the clustered subsystem (Get-Disk
+# shows the cluster-wide view), so per-node truth is the local mount table.
+$diskViewScript = @"
+Import-Module FailoverClusters -ErrorAction SilentlyContinue
+`$res = Get-ClusterResource -Name '$DiskResourceName' -ErrorAction SilentlyContinue
+if (`$res) { "CLUSTER VIEW : {0} state={1} owner={2}" -f `$res.Name, `$res.State, `$res.OwnerNode.Name }
+`$mounted = [System.IO.Directory]::Exists('S:\')
+"LOCAL ACCESS : S:\ mounted on {0} = {1}" -f `$env:COMPUTERNAME, `$mounted
+"@
 
 Write-Step "Current ownership of $FsRoleName and $DiskResourceName"
 $owner = (Invoke-VmScript -Vm $nodeVms[0] -Script "(Get-ClusterGroup -Name '$FsRoleName').OwnerNode.Name").ToLower()
@@ -64,10 +69,10 @@ $ownerVm = $vmByComputer[$owner]
 $other = $vmByComputer.Keys | Where-Object { $_ -ne $owner } | Select-Object -First 1
 $otherVm = $vmByComputer[$other]
 
-Write-Step "Disk view from OWNER ($owner) - expect S: mounted"
+Write-Step "Disk view from OWNER ($owner) - expect S:\ mounted = True"
 Invoke-VmScript -Vm $ownerVm -Script $diskViewScript
 
-Write-Step "Disk view from NON-OWNER ($other) - expect disk offline/reserved, no S:"
+Write-Step "Disk view from NON-OWNER ($other) - expect S:\ mounted = False (PR holder only)"
 Invoke-VmScript -Vm $otherVm -Script $diskViewScript
 
 Write-Step "Writing proof file on $owner"
@@ -103,7 +108,7 @@ $readBack = Invoke-VmScript -Vm $otherVm -Script "Get-Content -Path 'S:\shares\$
 Write-Host "read-back: $readBack"
 if ($readBack -notmatch 'written by') { throw 'FAIL: proof file not readable on the new owner.' }
 
-Write-Step "Disk view from OLD owner ($owner) - expect disk released"
+Write-Step "Disk view from OLD owner ($owner) - expect S:\ mounted = False (released)"
 Invoke-VmScript -Vm $ownerVm -Script $diskViewScript
 
 Write-Host "`nPASS: storage ownership moved with the role; data written on $owner was read on $other." -ForegroundColor Green

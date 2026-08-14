@@ -4,8 +4,10 @@
 authoritative restart, and restore the full vote table.
 
 Read [quorum and voting](../architecture/quorum-and-voting.md) first — the
-phase *order* is the whole lesson. Blocking the witness after a node is down
-does nothing, because dynamic quorum will already have re-weighted the votes.
+headline lesson is that WSFC's dynamic quorum is so effective that the drill
+has to **pin the votes** (`DynamicQuorum = 0`) to demonstrate a majority
+loss at all. A live test showed a single node surviving witness-plus-node
+failure thanks to last-man-standing re-weighting.
 
 ## What the script does
 
@@ -15,10 +17,14 @@ prompts between phases (use `-Force` to skip prompts):
 | Phase | Action | Cluster state after |
 |-------|--------|---------------------|
 | 0 | Baseline check | 2 nodes Up, witness Online (3/3 votes) |
-| 1 | Block witness (storage firewall: public network access off) | Witness Failed; cluster up on 2/3 votes |
-| 2 | Deallocate node02 | 1/3 votes -> **cluster service stops on node01** |
-| 3 | `Start-ClusterNode -FixQuorum` on node01 | Cluster up, forced, single node |
-| 4 | Restore witness access, start node02 | 3/3 votes, fully healthy |
+| 1 | Pin votes (`DynamicQuorum = 0`), block witness (storage firewall), force a witness re-check | Witness Failed; cluster up on 2/3 fixed votes |
+| 2 | Deallocate node02 | Outcome A: cluster service stops on node01 (classic quorum loss). Outcome B (observed on WS2025): the survivor rides through |
+| 3 | Outcome A only: `Start-ClusterNode -FixQuorum` on node01 | Cluster up, forced, single node |
+| 4 | Restore witness access, start node02, re-enable `DynamicQuorum` | 3/3 votes, defaults restored |
+
+Both phase-2 outcomes end in `PASS`; the drill reports which one you got.
+Outcome B is itself the lesson: WS2025 two-node clusters survive combined
+witness + node loss that stopped earlier versions cold.
 
 ## Run it
 

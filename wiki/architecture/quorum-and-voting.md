@@ -29,22 +29,34 @@ firewall is a perfect, reversible way to simulate witness loss.
 
 ## Dynamic quorum and dynamic witness (the trap)
 
-Modern WSFC does two clever things that will silently defeat a naive
-"kill a node, then kill the witness" drill:
+Modern WSFC works hard to keep the cluster alive on any single surviving
+vote, and it will silently defeat a naive quorum-loss drill:
 
-- **Dynamic quorum**: when a node goes down and the cluster *stabilizes*, the
-  down node's vote is removed. Your 2-of-3 cluster becomes 1-of-1 or 2-of-2.
+- **Dynamic quorum**: as members fail, surviving nodes re-weight the
+  remaining votes ("last man standing") so the cluster can shrink gracefully
+  all the way down to one node.
 - **Dynamic witness**: the witness only keeps its vote when the node-vote
   count is even; with an odd count its vote is zeroed to avoid ties.
 
-So if you deallocate node02 and wait, node02's vote disappears, the witness
-vote re-weights, and blocking the witness afterwards does… nothing. The
-cluster survives on node01 alone and the drill "fails" by succeeding.
+How strong is this? **Live test results from this lab (WS2025, 2026-08)**:
 
-**The drill therefore blocks the witness first** (cluster healthy, 2/3 votes,
-nothing re-weights) **and then hard-kills node02** — two votes vanish before
-dynamic quorum can stabilize, node01 sits at 1 of 3, and the cluster service
-stops. That is a genuine quorum loss.
+1. With the witness blocked *first* and node02 hard-killed two minutes later,
+   node01 survived — last-man-standing had already re-weighted the votes.
+2. Even with `DynamicQuorum = 0` pinned before the failures, node01 *still*
+   rode through witness + node loss with its cluster service running.
+   Windows Server 2025 hardens two-node quorum handling beyond the classic
+   majority math.
+
+Great resilience, terrible demo. The drill therefore pins the votes
+(`(Get-Cluster).DynamicQuorum = 0`) to give the classic majority-loss
+behavior its best chance, and treats **both** outcomes as valid:
+
+- **Quorum lost** (older behavior): the survivor stops its cluster service
+  and the drill walks you through `Start-ClusterNode -FixQuorum`.
+- **Cluster survives** (observed on WS2025): the drill reports the
+  resiliency, skips the force step, and proceeds straight to repair.
+
+The drill re-enables `DynamicQuorum` (the production default) on the way out.
 
 ## Forcing quorum
 

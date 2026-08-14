@@ -9,9 +9,13 @@ planned role move.
 [scripts/test-storage-ownership.ps1](../../scripts/test-storage-ownership.ps1):
 
 1. Confirms the `fs01` role and the `fs-data-disk` resource share an owner.
-2. Shows the disk from **both** nodes: the owner has the `S:` volume mounted;
-   the non-owner sees the same disk `Offline` with no volume — the platform
-   enforces the reservation, not politeness.
+2. Shows the disk from **both** nodes: the cluster resource state plus the
+   local mount table. Only the owner has `S:\` mounted locally — the
+   non-owner cannot mount it because the platform enforces the SCSI
+   reservation, not politeness. (Storage cmdlets like `Get-Disk` federate
+   the *clustered* subsystem on cluster nodes and show the cluster-wide
+   view from every node, which is why the script checks the local mount
+   table instead.)
 3. Writes `ownership-proof.txt` on the owner (through the clustered share
    path `S:\shares\data`).
 4. `Move-ClusterGroup` to the other node — a *planned* failover: the disk is
@@ -29,11 +33,11 @@ $rg = terraform output -raw resource_group_name
 
 ## Reading the output
 
-- `DISK ... clustered=True status=Online offline=False` + `VOLUME S: present`
-  — the owner's view.
-- `DISK ... status=Offline` + `VOLUME S: not mounted` — the non-owner's view.
-  This is Azure's shared-disk SCSI PR doing its job: both VMs *see* the LUN,
-  only the reservation holder can use it.
+- `CLUSTER VIEW : fs-data-disk state=Online owner=<node>` — identical from
+  both nodes; cluster resources are cluster-wide state.
+- `LOCAL ACCESS : S:\ mounted on <node> = True/False` — differs per node;
+  only the reservation holder mounts the filesystem. This is Azure's
+  shared-disk SCSI PR doing its job: both VMs *see* the LUN, one uses it.
 - The `read-back` line contains the text written by the *other* node — one
   disk, one filesystem, sequential ownership.
 

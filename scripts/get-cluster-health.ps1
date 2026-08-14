@@ -23,9 +23,12 @@ function Get-RunCommandStdout {
 
 function Invoke-VmScript {
     param([string]$Vm, [string]$Script)
-    # az returns a string array; join before parsing (and before any -match)
+    # base64-wrap so multi-line scripts survive the az.cmd argument chain;
+    # az returns a string array, join before parsing (and before any -match)
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Script))
+    $wrapper = "iex ([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded')))"
     $raw = (az vm run-command invoke --resource-group $ResourceGroup --name $Vm `
-            --command-id RunPowerShellScript --scripts $Script --output json) -join "`n"
+            --command-id RunPowerShellScript --scripts $wrapper --output json) -join "`n"
     if ($LASTEXITCODE -ne 0) { throw "run-command failed on $Vm" }
     $parsed = $raw | ConvertFrom-Json
     return Get-RunCommandStdout -Message (($parsed.value | ForEach-Object { $_.message }) -join "`n")
